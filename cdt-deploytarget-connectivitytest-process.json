@@ -1,0 +1,65 @@
+{
+  "Id": "deploymentprocess-Projects-1",
+  "SpaceId": "Spaces-1",
+  "ProjectId": "Projects-1",
+  "Version": 214,
+  "Steps": [
+    {
+      "Id": "8453c801-e09b-449b-bf15-f8a50ee041c5",
+      "Name": "Run-DeployTarget-ConnectivityTest (DEA)",
+      "Slug": "run-deploytarget-connectivitytest-dea",
+      "PackageRequirement": "LetOctopusDecide",
+      "Properties": {},
+      "Condition": "Success",
+      "StartTrigger": "StartAfterPrevious",
+      "Actions": [
+        {
+          "Id": "9f1d6466-2f6b-437d-a1ab-be18eb4838c8",
+          "Name": "Run-DeployTarget-ConnectivityTest (DEA)",
+          "Slug": "run-deploytarget-connectivitytest-dea",
+          "ActionType": "Octopus.Script",
+          "Notes": null,
+          "IsDisabled": false,
+          "CanBeUsedForProjectVersioning": false,
+          "IsRequired": false,
+          "WorkerPoolId": "WorkerPools-1",
+          "Container": {
+            "Image": null,
+            "FeedId": null,
+            "GitUrl": null,
+            "Dockerfile": null
+          },
+          "WorkerPoolVariable": null,
+          "Environments": [
+            "Environments-1"
+          ],
+          "ExcludedEnvironments": [],
+          "Channels": [],
+          "TenantTags": [],
+          "Packages": [],
+          "GitDependencies": [],
+          "Condition": "Success",
+          "Properties": {
+            "Octopus.Action.Script.ScriptSource": "Inline",
+            "Octopus.Action.Script.Syntax": "PowerShell",
+            "Octopus.Action.Script.ScriptBody": "function Check-TCPPort ([string]$Server, [int]$Port, [int]$Timeout=1000) {\n\n        $tcpclient = new-Object system.Net.Sockets.TcpClient\n\n        # Tell TCP Client to connect to machine on Port\n        $iar = $tcpclient.BeginConnect($Server,$Port,$null,$null)\n\n        # Set the wait time\n        $wait = $iar.AsyncWaitHandle.WaitOne($timeout,$false)\n\n        # Check to see if the connection is done\n        if(!$wait)\n        {\n            # Close the connection and report timeout\n            $tcpclient.Close()\n            if($verbose){Write-Host \"Connection Timeout\"}\n            Return $false\n        }\n        else\n        {\n            # Close the connection and report the error if there is one\n            $error.Clear()\n            $tcpclient.EndConnect($iar) | out-Null\n            if(!$?){if($verbose){write-host $error[0]};$failed = $true}\n            $tcpclient.Close()\n        }\n\n        # Return $true if connection Establish else $False\n        if($failed){return $false}else{return $true}\n\n}\n\nfunction checkHostList ([string[]]$staticHostList) {\n\t\n    if ([System.Convert]::ToBoolean($longTimeout)) {\n    \t$timeOutVal=30000\n    }\n    else {\n    \t$timeOutVal=1000\n    }\n    \n    \"{0,-50} {1,-10} {2,-10} \" -f \"Server\", \"Port\", \"Open?\"\n    write-host \"   \"\n    \n    foreach ($hostEntry in $staticHostList) {\n        $hostDetails = $hostEntry.Trim().Split(\":\")        \n        $servername=$hostDetails[0]        \n        $port = $hostDetails[1]\n        \n        $r = $false\n        try {\n        \t$r = Check-TCPPort -Server $servername -Port $port -Timeout $timeOutVal\n        }\n        catch {} \n        \n        if ([System.Convert]::ToBoolean($failureOnly)) {\n        \tif (-not $r) {\n            \t\"{0,-50} {1,-10} {2,-10} `n\" -f $servername, $port, $r\n            }\n        }\n        else {\n        \t\"{0,-50} {1,-10} {2,-10} `n\" -f $servername, $port, $r\n        }\n       \n\t\t#Write-Host \"$servername : $port  - $r\"\n\t\t#write-host $r\n    }\n    write-host \"   \"\n    write-host \"Connection timeout value: $timeOutVal ms\"\n    \"{0,-50} {1,-10} {2,-10} \" -f \"- END -\", \"\", \"\"\n}\n\n\ncheckHostList $hostList.Split(\",\", [System.StringSplitOptions]::RemoveEmptyEntries)\n",
+            "Octopus.Action.Template.Version": "9",
+            "Octopus.Action.Template.Id": "ActionTemplates-1",
+            "failureOnly": "False",
+            "Octopus.Action.RunOnServer": "true",
+            "longTimeout": "#{LongTimeoutVar}",
+            "hostList": "10.45.197.172:22,\n10.45.197.173:22,\n10.45.197.174:22,\n10.45.197.175:22,\n10.45.197.159:22,\n10.45.197.184:22,\n 10.45.197.49:22,\n 10.45.197.183:22"
+          },
+          "Links": {}
+        }
+      ]
+    }
+  ],
+  "LastSnapshotId": null,
+  "Links": {
+    "Self": "/api/Spaces-1/projects/Projects-1/deploymentprocesses",
+    "Project": "/api/Spaces-1/projects/Projects-1",
+    "Template": "/api/Spaces-1/projects/Projects-1/deploymentprocesses/template{?channel,releaseId}",
+    "Validation": "/api/Spaces-1/projects/Projects-1/deploymentprocesses/validate"
+  }
+}
