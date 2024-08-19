@@ -1,0 +1,14 @@
+ - name: "Read JSON"
+    uses: actions/github-script@v6
+    id: check-env
+    with:
+      result-encoding: string
+      script: |
+        try {
+          const fs = require('fs')
+          const jsonString = fs.readFileSync('./dir/file.json')
+          var apps = JSON.parse(jsonString)
+        } catch(err) {
+          core.error("Error while reading or parsing the JSON")
+          core.setFailed(err)
+        }
