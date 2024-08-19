@@ -1,26 +1,33 @@
-name: Import Octopus JSON Config
+name: Import and Convert Octopus JSON Config
 
 on: [push]
 
 jobs:
-  import-config:
+  import-and-convert:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Read Octopus JSON Config
-      id: read-json
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyyaml
+
+    - name: Read and Convert Octopus JSON Config
+      id: convert-json
       run: |
         if [ ! -f ./cdt-deploytarget-connectivitytest-process.json ]; then
           echo "Error: JSON file not found"
           exit 1
         fi
-        JSON_CONTENT=$(cat ./cdt-deploytarget-connectivitytest-process.json)
-        echo "::set-output name=json::$JSON_CONTENT"
+        python Action_Test.py ./cdt-deploytarget-connectivitytest-process.json ./output-github-actions-workflow.yml
 
-    - name: Use Octopus JSON Config
-      run: |
-        echo "Using Octopus JSON Config"
-        echo "${{ steps.read-json.outputs.json }}"
+    - name: Display Converted Workflow
+      run: cat ./output-github-actions-workflow.yml
