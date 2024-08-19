@@ -6,7 +6,7 @@
       script: |
         try {
           const fs = require('fs')
-          const jsonString = fs.readFileSync('./dir/file.json')
+          const jsonString = fs.readFileSync('./dir/cdt-deploytarget-connectivitytest-process.json')
           var apps = JSON.parse(jsonString)
         } catch(err) {
           core.error("Error while reading or parsing the JSON")
