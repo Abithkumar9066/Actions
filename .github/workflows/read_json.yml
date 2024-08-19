@@ -1,26 +1,26 @@
-name: CI
+name: Import Octopus JSON Config
 
 on: [push]
 
 jobs:
-  build:
+  import-config:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Read JSON
-      uses: actions/github-script@v6
-      id: check-env
-      with:
-        result-encoding: string
-        script: |
-          try {
-            const fs = require('fs')
-            const jsonString = fs.readFileSync('./cdt-deploytarget-connectivitytest-process.json')
-            var apps = JSON.parse(jsonString)
-          } catch(err) {
-            core.error("Error while reading or parsing the JSON")
-            core.setFailed(err)
-          }
+    - name: Read Octopus JSON Config
+      id: read-json
+      run: |
+        if [ ! -f ./cdt-deploytarget-connectivitytest-process.json ]; then
+          echo "Error: JSON file not found"
+          exit 1
+        fi
+        JSON_CONTENT=$(cat ./cdt-deploytarget-connectivitytest-process.json)
+        echo "::set-output name=json::$JSON_CONTENT"
+
+    - name: Use Octopus JSON Config
+      run: |
+        echo "Using Octopus JSON Config"
+        echo "${{ steps.read-json.outputs.json }}"
