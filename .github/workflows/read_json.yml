@@ -1,20 +1,26 @@
-name: build
-on: push
-jobs:
-  job1:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-    - id: set-matrix
-      run: |
-        JSON=$(cat ./cdt-deploytarget-connectivitytest-process.json)
-        echo "::set-output name=matrix::${JSON//'%'/'%25'}"
+name: CI
 
-  job2:
-    needs: job1
+on: [push]
+
+jobs:
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{fromJson(needs.job1.outputs.matrix)}}
+
     steps:
-    - run: build
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Read JSON
+      uses: actions/github-script@v6
+      id: check-env
+      with:
+        result-encoding: string
+        script: |
+          try {
+            const fs = require('fs')
+            const jsonString = fs.readFileSync('./Users/prab/Actions/cdt-deploytarget-connectivitytest-process.json')
+            var apps = JSON.parse(jsonString)
+          } catch(err) {
+            core.error("Error while reading or parsing the JSON")
+            core.setFailed(err)
+          }
